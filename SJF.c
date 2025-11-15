@@ -19,10 +19,7 @@ typedef struct {
     int endTime;
 } GanttEntry;
 
-/**
- * Comparison function for qsort.
- * Sorts processes based on their arrival time.
- */
+ //Sorts processes based on their arrival time qsort() funtion.
 int compareArrival(const void* a, const void* b) {
     Process* p1 = (Process*)a;
     Process* p2 = (Process*)b;
@@ -30,7 +27,7 @@ int compareArrival(const void* a, const void* b) {
 }
 
 int main() {
-    int n, i, j; 
+    int n; 
     int currentTime = 0;
     int completedProcesses = 0;
     float totalTAT = 0.0;
@@ -50,7 +47,7 @@ int main() {
     int ganttCount = 0;
 
     // 1. Get process details
-    for (i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
         processes[i].id = i + 1; 
         printf("--- Process %d ---\n", processes[i].id);
         printf("Enter Arrival Time: ");
@@ -74,7 +71,7 @@ int main() {
         int minBurst = INT_MAX;
 
         // Find the available process with the shortest burst time
-        for (i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             if (processes[i].arrival <= currentTime && processes[i].isCompleted == 0) {
                 if (processes[i].burst < minBurst) {
                     minBurst = processes[i].burst;
@@ -115,7 +112,7 @@ int main() {
                 int nextMinBurst = INT_MAX;
 
                 printf("   Ready Queue: [");
-                for (j = 0; j < n; j++) {
+                for (int j = 0; j < n; j++) {
                     if (processes[j].arrival <= currentTime && processes[j].isCompleted == 0) {
                         printf(" P%d(Burst:%d) ", processes[j].id, processes[j].burst);
                         queueCount++;
@@ -145,7 +142,7 @@ int main() {
             
             // Find the time of the *next* arriving process
             int nextArrival = INT_MAX;
-            for (i = 0; i < n; i++) {
+            for (int i = 0; i < n; i++) {
                 if (processes[i].isCompleted == 0 && processes[i].arrival < nextArrival) {
                     nextArrival = processes[i].arrival;
                 }
@@ -162,7 +159,7 @@ int main() {
                 int nextProcessId = -1;
                 int nextMinBurst = INT_MAX;
                 printf("   At time %d, new arrivals: [", currentTime);
-                for (j = 0; j < n; j++) {
+                for (int j = 0; j < n; j++) {
                     if (processes[j].arrival == currentTime && processes[j].isCompleted == 0) {
                         printf(" P%d(Burst:%d) ", processes[j].id, processes[j].burst);
                         if (processes[j].burst < nextMinBurst) {
@@ -190,7 +187,7 @@ int main() {
            "Process", "Arrival Time", "Burst Time", "Completion Time", "Turnaround Time", "Waiting Time");
     printf("-----------------------------------------------------------------------------------------\n");
 
-    for (i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
         printf("P%-9d %-15d %-15d %-20d %-20d %-15d\n", 
                processes[i].id, processes[i].arrival, processes[i].burst, 
                processes[i].completion, processes[i].tat, processes[i].wt);
@@ -211,7 +208,7 @@ int main() {
     // 5. Display Gantt Chart
     printf("\n## Gantt Chart (Timeline) ##\n");
     int startTime = 0;
-    for (i = 0; i < ganttCount; i++) {
+    for (int i = 0; i < ganttCount; i++) {
         printf("| %d ", startTime);
         if (gantt[i].processId == -1) {
             printf(" IDLE ");
