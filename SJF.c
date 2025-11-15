@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h> 
-#include <limits.h>
+#include <limits.h> 
 
+// Structure to represent a process
 typedef struct {
     int id;
     int arrival;
@@ -9,7 +10,7 @@ typedef struct {
     int completion;
     int tat; // Turnaround Time
     int wt;  // Waiting Time
-    int isCompleted; // 0 or 1
+    int isCompleted; // (0 or 1)
 } Process;
 
 // Structure to store Gantt chart entries
@@ -29,7 +30,7 @@ int compareArrival(const void* a, const void* b) {
 }
 
 int main() {
-    int n, i;
+    int n, i, j; 
     int currentTime = 0;
     int completedProcesses = 0;
     float totalTAT = 0.0;
@@ -50,7 +51,7 @@ int main() {
 
     // 1. Get process details
     for (i = 0; i < n; i++) {
-        processes[i].id = i + 1; // Use 1-based IDs
+        processes[i].id = i + 1; 
         printf("--- Process %d ---\n", processes[i].id);
         printf("Enter Arrival Time: ");
         scanf("%d", &processes[i].arrival);
@@ -63,6 +64,9 @@ int main() {
 
     // Sort processes by arrival time initially
     qsort(processes, n, sizeof(Process), compareArrival);
+
+    printf("\n## In-Process Log ##\n");
+    printf("Simulation starts at time 0.\n\n");
 
     // 2. Main Scheduling Loop
     while (completedProcesses < n) {
@@ -83,8 +87,12 @@ int main() {
             // --- A process is found and will be executed ---
             Process* p = &processes[selectedIndex];
 
+            int startTime = currentTime; // Store start time
             currentTime += p->burst;
             p->completion = currentTime;
+
+            printf("-> Process P%d ran from time %d to %d (Completed).\n", p->id, startTime, p->completion); 
+
             p->tat = p->completion - p->arrival;
             p->wt = p->tat - p->burst;
 
@@ -99,6 +107,39 @@ int main() {
             gantt[ganttCount].endTime = currentTime;
             ganttCount++;
 
+            // --- LOGGING SECTION ---
+            if (completedProcesses < n) {
+                printf("   At time %d, checking ready queue...\n", currentTime);
+                int queueCount = 0;
+                int nextProcessId = -1;
+                int nextMinBurst = INT_MAX;
+
+                printf("   Ready Queue: [");
+                for (j = 0; j < n; j++) {
+                    if (processes[j].arrival <= currentTime && processes[j].isCompleted == 0) {
+                        printf(" P%d(Burst:%d) ", processes[j].id, processes[j].burst);
+                        queueCount++;
+                        // Find the shortest job among them
+                        if (processes[j].burst < nextMinBurst) {
+                            nextMinBurst = processes[j].burst;
+                            nextProcessId = processes[j].id;
+                        }
+                    }
+                }
+
+                if (queueCount == 0) {
+                    printf(" Empty ");
+                }
+                printf("]\n");
+
+                if (nextProcessId != -1) {
+                    printf("   -> Next to run: P%d (shortest job).\n\n", nextProcessId);
+                } else {
+                    printf("   -> Ready Queue is empty. CPU will be idle.\n\n");
+                }
+            }
+            // --- END OF LOGGING SECTION ---
+
         } else {
             // --- No process is available (CPU is idle) ---
             
@@ -110,11 +151,29 @@ int main() {
                 }
             }
 
-            // If we are here, it means currentTime < nextArrival
             if (nextArrival != INT_MAX) {
                 int idleStartTime = currentTime;
-                totalIdleTime += (nextArrival - currentTime); // Add to idle time
-                currentTime = nextArrival; // Move time forward
+                totalIdleTime += (nextArrival - currentTime);
+                currentTime = nextArrival;
+
+                printf("-> CPU idle from time %d to %d.\n", idleStartTime, currentTime); // MODIFIED LOG
+
+                // --- DETAILED LOGGING FOR IDLE (NEW) ---
+                int nextProcessId = -1;
+                int nextMinBurst = INT_MAX;
+                printf("   At time %d, new arrivals: [", currentTime);
+                for (j = 0; j < n; j++) {
+                    if (processes[j].arrival == currentTime && processes[j].isCompleted == 0) {
+                        printf(" P%d(Burst:%d) ", processes[j].id, processes[j].burst);
+                        if (processes[j].burst < nextMinBurst) {
+                            nextMinBurst = processes[j].burst;
+                            nextProcessId = processes[j].id;
+                        }
+                    }
+                }
+                printf("]\n");
+                printf("   -> Next to run: P%d (shortest new arrival).\n\n", nextProcessId);
+                // --- END OF LOGGING SECTION ---
 
                 // Add IDLE entry to Gantt chart
                 gantt[ganttCount].processId = -1; // -1 represents IDLE
